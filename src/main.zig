@@ -56,20 +56,29 @@ fn ProduceGol(comptime w: usize, comptime h: usize) type {
 
             return result;
         }
+
+        fn get_width() usize { return w; }  // TODO const
+        fn get_height() usize { return h; }
     };
 }
 
 pub fn main() void {
-    const Gol = ProduceGol(5, 5);
-    const gol = Gol{
-        .field = [_]i8{
-            0, 1, 0, 1, 0,
-            0, 0, 1, 1, 1,
-            0, 0, 1, 1, 1,
-            0, 0, 1, 1, 1,
-            0, 1, 0, 1, 0,
-        },
-    };
+    var prng = std.rand.DefaultPrng.init(blk: {
+        var seed: u64 = undefined;
+        std.posix.getrandom(std.mem.asBytes(&seed)) catch unreachable;
+        break :blk seed;
+    });
+    const rand = prng.random();
+
+    const Gol = ProduceGol(20, 20);
+    var gol = Gol{ .field = undefined };
+
+    for (0..Gol.get_width()) |x| {
+        for (0..Gol.get_height()) |y| {
+            gol.at(x, y).* = if (rand.boolean()) 1 else 0;
+        }
+    }
+
     gol.display();
 
     const next = gol.produce_next();
