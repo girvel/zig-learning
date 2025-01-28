@@ -2,15 +2,15 @@ const std = @import("std");
 const raylib = @import("raylib");
 const expect = std.testing.expect;
 
-fn mod_add(x: usize, offset: i8, limit: usize) usize {
-    return @intCast(@mod(@as(i8, @intCast(x)) + offset, @as(i8, @intCast(limit))));
+fn mod_add(x: usize, offset: i32, limit: usize) usize {
+    return @intCast(@mod(@as(i32, @intCast(x)) + offset, @as(i32, @intCast(limit))));
 }
 
 fn ProduceGol(comptime w: usize, comptime h: usize) type {
     return struct {
         const Self = @This();
 
-        field: [w * h]i8,
+        field: [w * h]i32,
 
         fn display(self: Self) void {
             for (self.field, 0..) |value, i| {
@@ -21,11 +21,11 @@ fn ProduceGol(comptime w: usize, comptime h: usize) type {
             }
         }
 
-        fn at(self: *Self, x: usize, y: usize) *i8 {
+        fn at(self: *Self, x: usize, y: usize) *i32 {
             return &self.field[x + y * w];
         }
 
-        fn get_at(self: Self, x: usize, y: usize) i8 {
+        fn get_at(self: Self, x: usize, y: usize) i32 {
             return self.field[x + y * w];
         }
 
@@ -64,8 +64,8 @@ fn ProduceGol(comptime w: usize, comptime h: usize) type {
 }
 
 pub fn main() void {
-    const w = 120;
-    const h = 120;
+    const w = 128;
+    const h = 128;
 
     var prng = std.rand.DefaultPrng.init(blk: {
         var seed: u64 = undefined;
