@@ -18,5 +18,3 @@ pub fn main() void {
         }
     }
 }
-
-test "always succeeds" {}
