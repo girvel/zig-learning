@@ -29,7 +29,7 @@ fn ProduceGol(comptime w: usize, comptime h: usize) type {
             return self.field[x + y * w];
         }
 
-        fn produce_next(self: Self) Self {
+        fn next(self: Self) Self {
             var result = Self{ .field = undefined };
 
             for (0..w) |x| {
@@ -64,6 +64,9 @@ fn ProduceGol(comptime w: usize, comptime h: usize) type {
 }
 
 pub fn main() void {
+    const w = 120;
+    const h = 120;
+
     var prng = std.rand.DefaultPrng.init(blk: {
         var seed: u64 = undefined;
         std.posix.getrandom(std.mem.asBytes(&seed)) catch unreachable;
@@ -71,7 +74,7 @@ pub fn main() void {
     });
     const rand = prng.random();
 
-    const Gol = ProduceGol(20, 20);
+    const Gol = ProduceGol(w, h);
     var gol = Gol{ .field = undefined };
 
     for (0..Gol.get_width()) |x| {
@@ -80,7 +83,7 @@ pub fn main() void {
         }
     }
 
-    raylib.initWindow(800, 450, "Game of Life");
+    raylib.initWindow(w, h, "Game of Life");
     defer raylib.closeWindow();
 
     raylib.setTargetFPS(100);
@@ -90,6 +93,16 @@ pub fn main() void {
         defer raylib.endDrawing();
 
         raylib.clearBackground(raylib.Color.white);
-        raylib.drawText("Hello, world!", 190, 200, 20, raylib.Color.light_gray);
+
+        for (0..Gol.get_width()) |x| {
+            for (0..Gol.get_height()) |y| {
+                raylib.drawPixel(@as(i32, @intCast(x)), @as(i32, @intCast(y)), 
+                    if (gol.get_at(x, y) == 1) raylib.Color.black
+                    else raylib.Color.white
+                );
+            }
+        }
+
+        gol = gol.next();
     }
 }
