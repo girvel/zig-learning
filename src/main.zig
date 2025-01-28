@@ -1,4 +1,5 @@
 const std = @import("std");
+const raylib = @import("raylib");
 const expect = std.testing.expect;
 
 fn mod_add(x: usize, offset: i8, limit: usize) usize {
@@ -79,8 +80,16 @@ pub fn main() void {
         }
     }
 
-    gol.display();
+    raylib.initWindow(800, 450, "Game of Life");
+    defer raylib.closeWindow();
 
-    const next = gol.produce_next();
-    next.display();
+    raylib.setTargetFPS(100);
+
+    while (!raylib.windowShouldClose()) {
+        raylib.beginDrawing();
+        defer raylib.endDrawing();
+
+        raylib.clearBackground(raylib.Color.white);
+        raylib.drawText("Hello, world!", 190, 200, 20, raylib.Color.light_gray);
+    }
 }
