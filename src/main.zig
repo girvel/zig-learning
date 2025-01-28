@@ -64,45 +64,33 @@ fn ProduceGol(comptime w: usize, comptime h: usize) type {
 }
 
 pub fn main() void {
-    const w = 128;
-    const h = 128;
-
-    var prng = std.rand.DefaultPrng.init(blk: {
-        var seed: u64 = undefined;
-        std.posix.getrandom(std.mem.asBytes(&seed)) catch unreachable;
-        break :blk seed;
-    });
-    const rand = prng.random();
-
-    const Gol = ProduceGol(w, h);
-    var gol = Gol{ .field = undefined };
-
-    for (0..Gol.get_width()) |x| {
-        for (0..Gol.get_height()) |y| {
-            gol.at(x, y).* = if (rand.boolean()) 1 else 0;
-        }
-    }
+    const w = 800;
+    const h = 600;
 
     raylib.initWindow(w, h, "Game of Life");
     defer raylib.closeWindow();
 
     raylib.setTargetFPS(100);
 
+    const camera = raylib.Camera {
+        .position = raylib.Vector3{.x = 4, .y = 4, .z = 4},  // TODO test anonymous
+        .target = raylib.Vector3{.x = 0, .y = 0, .z = 0},
+        .up = raylib.Vector3{.x = 0, .y = 1, .z = 0},
+        .fovy = 45,
+        .projection = raylib.CameraProjection.perspective,
+    };
+
     while (!raylib.windowShouldClose()) {
         raylib.beginDrawing();
         defer raylib.endDrawing();
 
+        raylib.beginMode3D(camera);
+        defer raylib.endMode3D();
+
         raylib.clearBackground(raylib.Color.white);
 
-        for (0..Gol.get_width()) |x| {
-            for (0..Gol.get_height()) |y| {
-                raylib.drawPixel(@as(i32, @intCast(x)), @as(i32, @intCast(y)), 
-                    if (gol.get_at(x, y) == 1) raylib.Color.black
-                    else raylib.Color.white
-                );
-            }
-        }
-
-        gol = gol.next();
+        raylib.drawGrid(10, 1.0);
+        raylib.drawCube(raylib.Vector3 {.x = 0, .y = 0, .z = 0}, 1, 1, 1, raylib.Color.black);
+        raylib.drawFPS(10, 10);
     }
 }
