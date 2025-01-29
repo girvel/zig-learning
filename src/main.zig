@@ -8,7 +8,7 @@ pub fn main() anyerror!void {
     defer _ = gpa.deinit();
 
     var lines = std.ArrayList([]u8).init(allocator);
-    defer lines.deinit();  // TODO test memory leak detection
+    defer lines.deinit();
 
     {
         var file = try std.fs.cwd().openFile("demo.txt", .{});
