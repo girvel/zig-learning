@@ -3,6 +3,10 @@ const rl = @import("raylib");
 const expect = std.testing.expect;
 
 pub fn main() anyerror!void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    defer _ = gpa.deinit();
+
     var first_line: []u8 = undefined;
     {
         var file = try std.fs.cwd().openFile("demo.txt", .{});
@@ -13,11 +17,12 @@ pub fn main() anyerror!void {
 
         var buf: [1024]u8 = undefined;
         while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-            first_line = line;
+            first_line = try allocator.dupe(u8, line);
             break;
         }
     }
-
+    
+    defer allocator.free(first_line);
     std.debug.print("{s}\n", .{first_line});
 
     const w = 800;
