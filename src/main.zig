@@ -8,7 +8,12 @@ pub fn main() anyerror!void {
     defer _ = gpa.deinit();
 
     var lines = std.ArrayList([]u8).init(allocator);
-    defer lines.deinit();
+    defer {
+        for (lines.items) |line| {
+            allocator.free(line);
+        }
+        lines.deinit();
+    }
 
     {
         var file = try std.fs.cwd().openFile("demo.txt", .{});
@@ -21,12 +26,6 @@ pub fn main() anyerror!void {
         while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
             if (std.mem.startsWith(u8, line, "#")) continue;
             try lines.append(try allocator.dupe(u8, line));
-        }
-    }
-    
-    defer {
-        for (lines.items) |line| {
-            allocator.free(line);
         }
     }
 
