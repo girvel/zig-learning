@@ -9,9 +9,7 @@ pub fn main() void {
     rl.initWindow(w, h, "Game of Life");
     defer rl.closeWindow();
 
-    rl.setTargetFPS(100);
-
-    const camera = rl.Camera {
+    var camera = rl.Camera {
         .position = rl.Vector3.init(4, 4, 4),
         .target = rl.Vector3.zero(),
         .up = rl.Vector3.init(0, 1, 0),
@@ -19,7 +17,12 @@ pub fn main() void {
         .projection = rl.CameraProjection.perspective,
     };
 
+    rl.disableCursor();
+    rl.setTargetFPS(100);
+
     while (!rl.windowShouldClose()) {
+        rl.updateCamera(&camera, rl.CameraMode.free);
+
         rl.beginDrawing();
         defer rl.endDrawing();
 
@@ -29,7 +32,7 @@ pub fn main() void {
         rl.clearBackground(rl.Color.white);
 
         rl.drawGrid(10, 1.0);
-        rl.drawCube(rl.Vector3.zero(), 1, 1, 1, rl.Color.black);
+        rl.drawCube(rl.Vector3.one().scale(0.5), 1, 1, 1, rl.Color.black);
         rl.drawFPS(10, 10);
     }
 }
