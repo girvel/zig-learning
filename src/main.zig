@@ -7,7 +7,9 @@ pub fn main() anyerror!void {
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
 
-    var first_line: []u8 = undefined;
+    var lines = std.ArrayList([]u8).init(allocator);
+    defer lines.deinit();  // TODO test memory leak detection
+
     {
         var file = try std.fs.cwd().openFile("demo.txt", .{});
         defer file.close();
@@ -17,13 +19,23 @@ pub fn main() anyerror!void {
 
         var buf: [1024]u8 = undefined;
         while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-            first_line = try allocator.dupe(u8, line);
-            break;
+            if (std.mem.startsWith(u8, line, "#")) continue;
+            try lines.append(try allocator.dupe(u8, line));
         }
     }
     
-    defer allocator.free(first_line);
-    std.debug.print("{s}\n", .{first_line});
+    defer {
+        for (lines.items) |line| {
+            allocator.free(line);
+        }
+    }
+
+    var i: i32 = 0;
+    for (lines.items) |line| {
+        if (i == 20) break;
+        std.debug.print("{s}\n", .{line});
+        i += 1;
+    }
 
     const w = 800;
     const h = 600;
