@@ -27,17 +27,15 @@ pub fn main() anyerror!void {
             if (std.mem.startsWith(u8, line, "#")) continue;
             
             var iter = std.mem.split(u8, line, " ");
+            const x = @as(f32, @floatFromInt(try std.fmt.parseInt(i32, iter.next().?, 10)));
+            const y = @as(f32, @floatFromInt(try std.fmt.parseInt(i32, iter.next().?, 10)));
+            const z = @as(f32, @floatFromInt(try std.fmt.parseInt(i32, iter.next().?, 10)));
+            var color_hex = iter.next().?;
+            if (std.mem.endsWith(u8, color_hex, "\r")) color_hex = color_hex[0..color_hex.len - 1];
+
             try voxels.append(Voxel{
-                .position = rl.Vector3.init(
-                    @as(f32, @floatFromInt(try std.fmt.parseInt(i32, iter.next().?, 10))),
-                    @as(f32, @floatFromInt(try std.fmt.parseInt(i32, iter.next().?, 10))),
-                    @as(f32, @floatFromInt(try std.fmt.parseInt(i32, iter.next().?, 10))),
-                ),
-                .color = rl.getColor(
-                    0x22222222
-                    // TODO fix this
-                    // try std.fmt.parseInt(u32, iter.next().?, 16),
-                ),
+                .position = rl.Vector3.init(x, z, y),
+                .color = rl.getColor((try std.fmt.parseInt(u32, color_hex, 16) << 8) + 0xff),
             });
         }
     }
@@ -49,7 +47,7 @@ pub fn main() anyerror!void {
     defer rl.closeWindow();
 
     var camera = rl.Camera {
-        .position = rl.Vector3.init(4, 4, 4),
+        .position = rl.Vector3.one().scale(12),
         .target = rl.Vector3.zero(),
         .up = rl.Vector3.init(0, 1, 0),
         .fovy = 45,
@@ -65,15 +63,18 @@ pub fn main() anyerror!void {
         rl.beginDrawing();
         defer rl.endDrawing();
 
-        rl.beginMode3D(camera);
-        defer rl.endMode3D();
+        {
+            rl.beginMode3D(camera);
+            defer rl.endMode3D();
 
-        rl.clearBackground(rl.Color.white);
+            rl.clearBackground(rl.Color.white);
 
-        rl.drawGrid(10, 1.0);
-        for (voxels.items) |voxel| {
-            rl.drawCube(rl.Vector3.one().scale(0.5).add(voxel.position), 1, 1, 1, voxel.color);
+            rl.drawGrid(100, 1.0);
+            for (voxels.items) |voxel| {
+                rl.drawCube(rl.Vector3.one().scale(0.5).add(voxel.position), 1, 1, 1, voxel.color);
+            }
         }
+
         rl.drawFPS(10, 10);
     }
 }
