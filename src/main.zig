@@ -2,18 +2,18 @@ const std = @import("std");
 const rl = @import("raylib");
 const expect = std.testing.expect;
 
+const Voxel = struct {
+    position: rl.Vector3,
+    color: rl.Color,
+};
+
 pub fn main() anyerror!void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
 
-    var lines = std.ArrayList([]u8).init(allocator);
-    defer {
-        for (lines.items) |line| {
-            allocator.free(line);
-        }
-        lines.deinit();
-    }
+    var voxels = std.ArrayList(Voxel).init(allocator);
+    defer voxels.deinit();
 
     {
         var file = try std.fs.cwd().openFile("demo.txt", .{});
@@ -25,15 +25,21 @@ pub fn main() anyerror!void {
         var buf: [1024]u8 = undefined;
         while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
             if (std.mem.startsWith(u8, line, "#")) continue;
-            try lines.append(try allocator.dupe(u8, line));
+            
+            var iter = std.mem.split(u8, line, " ");
+            try voxels.append(Voxel{
+                .position = rl.Vector3.init(
+                    @as(f32, @floatFromInt(try std.fmt.parseInt(i32, iter.next().?, 10))),
+                    @as(f32, @floatFromInt(try std.fmt.parseInt(i32, iter.next().?, 10))),
+                    @as(f32, @floatFromInt(try std.fmt.parseInt(i32, iter.next().?, 10))),
+                ),
+                .color = rl.getColor(
+                    0x22222222
+                    // TODO fix this
+                    // try std.fmt.parseInt(u32, iter.next().?, 16),
+                ),
+            });
         }
-    }
-
-    var i: i32 = 0;
-    for (lines.items) |line| {
-        if (i == 20) break;
-        std.debug.print("{s}\n", .{line});
-        i += 1;
     }
 
     const w = 800;
@@ -65,7 +71,9 @@ pub fn main() anyerror!void {
         rl.clearBackground(rl.Color.white);
 
         rl.drawGrid(10, 1.0);
-        rl.drawCube(rl.Vector3.one().scale(0.5), 1, 1, 1, rl.Color.black);
+        for (voxels.items) |voxel| {
+            rl.drawCube(rl.Vector3.one().scale(0.5).add(voxel.position), 1, 1, 1, voxel.color);
+        }
         rl.drawFPS(10, 10);
     }
 }
