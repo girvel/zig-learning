@@ -1,44 +1,14 @@
 const std = @import("std");
 const rl = @import("raylib");
+const space = @import("space.zig");
 const expect = std.testing.expect;
-
-const Voxel = struct {
-    position: rl.Vector3,
-    color: rl.Color,
-};
 
 pub fn main() anyerror!void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
 
-    var voxels = std.ArrayList(Voxel).init(allocator);
-    defer voxels.deinit();
-
-    {
-        var file = try std.fs.cwd().openFile("assets/demo.txt", .{});
-        defer file.close();
-
-        var buf_reader = std.io.bufferedReader(file.reader());
-        var in_stream = buf_reader.reader();
-
-        var buf: [1024]u8 = undefined;
-        while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-            if (std.mem.startsWith(u8, line, "#")) continue;
-            
-            var iter = std.mem.split(u8, line, " ");
-            const x = @as(f32, @floatFromInt(try std.fmt.parseInt(i32, iter.next().?, 10)));
-            const y = @as(f32, @floatFromInt(try std.fmt.parseInt(i32, iter.next().?, 10)));
-            const z = @as(f32, @floatFromInt(try std.fmt.parseInt(i32, iter.next().?, 10)));
-            var color_hex = iter.next().?;
-            if (std.mem.endsWith(u8, color_hex, "\r")) color_hex = color_hex[0..color_hex.len - 1];
-
-            try voxels.append(Voxel{
-                .position = rl.Vector3.init(x, z, y),
-                .color = rl.getColor((try std.fmt.parseInt(u32, color_hex, 16) << 8) + 0xff),
-            });
-        }
-    }
+    const voxels = try space.load_voxels("assets/demo.txt", allocator);
 
     const w = 800;
     const h = 600;
