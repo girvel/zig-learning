@@ -54,7 +54,10 @@ pub fn main() anyerror!void {
         .projection = rl.CameraProjection.perspective,
     };
 
-    const shader = try rl.loadShader(null, "assets/shaders/main.glsl");
+    const shader = try rl.loadShader(
+        "assets/shaders/main_vert.glsl",
+        "assets/shaders/main_frag.glsl"
+    );
 
     rl.disableCursor();
     rl.setTargetFPS(100);
