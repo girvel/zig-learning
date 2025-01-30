@@ -56,3 +56,6 @@ pub fn main() anyerror!void {
         rl.drawFPS(10, 10);
     }
 }
+
+test {std.testing.refAllDecls(@This());}
+
