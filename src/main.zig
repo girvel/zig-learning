@@ -16,7 +16,7 @@ pub fn main() anyerror!void {
     defer voxels.deinit();
 
     {
-        var file = try std.fs.cwd().openFile("demo.txt", .{});
+        var file = try std.fs.cwd().openFile("assets/demo.txt", .{});
         defer file.close();
 
         var buf_reader = std.io.bufferedReader(file.reader());
@@ -54,6 +54,8 @@ pub fn main() anyerror!void {
         .projection = rl.CameraProjection.perspective,
     };
 
+    const shader = try rl.loadShader(null, "assets/shaders/main.glsl");
+
     rl.disableCursor();
     rl.setTargetFPS(100);
 
@@ -66,6 +68,9 @@ pub fn main() anyerror!void {
         {
             rl.beginMode3D(camera);
             defer rl.endMode3D();
+
+            rl.beginShaderMode(shader);
+            defer rl.endShaderMode();
 
             rl.clearBackground(rl.Color.white);
 
