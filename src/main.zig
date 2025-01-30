@@ -8,7 +8,10 @@ pub fn main() anyerror!void {
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
 
-    const voxels = try space.load_voxels("assets/demo.txt", allocator);
+    const terrain = try space.Slice3.load(
+        "assets/demo.txt", rl.Vector3.init(41, 41, 41), allocator
+    );
+    defer terrain.deinit();
 
     const w = 800;
     const h = 600;
@@ -48,14 +51,22 @@ pub fn main() anyerror!void {
             rl.clearBackground(rl.Color.white);
 
             rl.drawGrid(100, 1.0);
-            for (voxels.items) |voxel| {
-                rl.drawCube(rl.Vector3.one().scale(0.5).add(voxel.position), 1, 1, 1, voxel.color);
-            }
+            for (0..@as(usize, @intFromFloat(terrain.size.x))) |x|
+            for (0..@as(usize, @intFromFloat(terrain.size.y))) |y|
+            for (0..@as(usize, @intFromFloat(terrain.size.z))) |z| {
+                const position = rl.Vector3.init(
+                    @floatFromInt(x), 
+                    @floatFromInt(y),
+                    @floatFromInt(z),
+                );
+                const color = try terrain.at(position) orelse continue;
+                rl.drawCube(position.add(rl.Vector3.one().scale(0.5)), 1, 1, 1, color);
+            };
         }
 
         rl.drawFPS(10, 10);
     }
 }
 
-test {std.testing.refAllDecls(@This());}
+comptime {std.testing.refAllDecls(@This());}
 
