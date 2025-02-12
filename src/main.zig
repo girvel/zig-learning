@@ -9,7 +9,7 @@ pub fn main() anyerror!void {
     defer _ = gpa.deinit();
 
     const terrain = try space.Slice3.load(
-        "assets/demo.txt", rl.Vector3.init(41, 41, 41), allocator
+        "assets/demo.txt", rl.Vector3.one().scale(50), allocator
     );
     defer terrain.deinit();
 
@@ -20,8 +20,8 @@ pub fn main() anyerror!void {
     defer rl.closeWindow();
 
     var camera = rl.Camera {
-        .position = rl.Vector3.one().scale(12),
-        .target = rl.Vector3.zero(),
+        .position = rl.Vector3.init(-4, 12, -4),
+        .target = rl.Vector3.init(20, 0, 20),
         .up = rl.Vector3.init(0, 1, 0),
         .fovy = 45,
         .projection = rl.CameraProjection.perspective,
@@ -58,7 +58,7 @@ pub fn main() anyerror!void {
                     @floatFromInt(x), 
                     @floatFromInt(y),
                     @floatFromInt(z),
-                );
+                );  // TODO a good iterator
                 const color = try terrain.at(position) orelse continue;
                 rl.drawCube(position.add(rl.Vector3.one().scale(0.5)), 1, 1, 1, color);
             };

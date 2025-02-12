@@ -24,14 +24,22 @@ pub const Slice3 = struct {
     }
 
     fn index(self: Slice3, position: rl.Vector3) !usize {
-        if (position.x >= self.size.x or
-            position.y >= self.size.y or
-            position.z >= self.size.z) return IndexingError.OutOfBounds;
+        const x: usize = @intFromFloat(position.x);  // TODO no, really, stop using float-based vector
+        const y: usize = @intFromFloat(position.y);
+        const z: usize = @intFromFloat(position.z);
 
-        return @intFromFloat(
-            position.x + 
-            position.z * self.size.x + 
-            position.y * self.size.x * self.size.z
+        const w: usize = @intFromFloat(self.size.x);
+        const h: usize = @intFromFloat(self.size.y);
+        const d: usize = @intFromFloat(self.size.z);
+
+        if (x >= w or
+            y >= h or
+            z >= d) return IndexingError.OutOfBounds;
+
+        return (
+            x + 
+            z * w + 
+            y * w * d
         );
     }
 
@@ -48,8 +56,13 @@ pub const Slice3 = struct {
     ) !Slice3 {
         var result = try Slice3.init(size, allocator);
         errdefer result.deinit();
+        @memset(result.base, null);
 
-        const offset = size.scale(0.5);
+        const offset = rl.Vector3.init(
+            @ceil(size.x / 2),
+            0,
+            @ceil(size.y / 2),
+        );
 
         var file = try std.fs.cwd().openFile(path, .{});
         defer file.close();
@@ -68,7 +81,7 @@ pub const Slice3 = struct {
             var color_hex = iter.next().?;
             if (std.mem.endsWith(u8, color_hex, "\r")) color_hex = color_hex[0..color_hex.len - 1];
 
-            (try result.at_mut(rl.Vector3.init(x, y, z).add(offset))).*
+            (try result.at_mut(rl.Vector3.init(x, z, y).add(offset))).*
                 = rl.getColor((try std.fmt.parseInt(u32, color_hex, 16) << 8) + 0xff);
         }
 
